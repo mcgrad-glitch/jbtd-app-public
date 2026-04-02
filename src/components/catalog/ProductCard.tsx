@@ -1,3 +1,6 @@
+'use client'
+
+import Link from 'next/link'
 import type { Database } from '@/lib/supabase/types'
 
 type ProductRow = Database['public']['Tables']['products']['Row']
@@ -5,14 +8,19 @@ type ProductRow = Database['public']['Tables']['products']['Row']
 interface Props {
   product: ProductRow
   matchPct: number
+  hasRequest: boolean
   onRequestVideo: (productId: string) => void
 }
 
-export default function ProductCard({ product, matchPct, onRequestVideo }: Props) {
+export default function ProductCard({ product, matchPct, hasRequest, onRequestVideo }: Props) {
   const coverImage = product.images?.[0] ?? null
 
   return (
-    <article className="flex flex-col rounded-2xl border border-gray-200 overflow-hidden bg-white">
+    <Link
+      href={`/product/${product.id}`}
+      className="flex flex-col rounded-2xl border border-gray-200 overflow-hidden bg-white
+                 hover:border-gray-300 hover:shadow-sm transition-all duration-150"
+    >
       {/* Фото */}
       <div className="relative w-full aspect-square bg-gray-50 flex items-center justify-center">
         {coverImage ? (
@@ -74,17 +82,24 @@ export default function ProductCard({ product, matchPct, onRequestVideo }: Props
           </p>
         )}
 
-        {/* Кнопки */}
-        <div className="mt-auto pt-3 flex flex-col gap-2">
+        {/* Кнопки — stopPropagation чтобы не триггерить Link */}
+        <div
+          className="mt-auto pt-3 flex flex-col gap-2"
+          onClick={e => e.preventDefault()}
+        >
           <button
-            onClick={() => onRequestVideo(product.id)}
-            className="w-full py-2 rounded-xl border border-black text-sm font-medium text-black
-                       hover:bg-black hover:text-white active:scale-[0.97]
-                       transition-all duration-150"
+            disabled={hasRequest}
+            onClick={e => { e.preventDefault(); e.stopPropagation(); onRequestVideo(product.id) }}
+            className={`w-full py-2 rounded-xl text-sm font-medium transition-all duration-150
+              ${hasRequest
+                ? 'border border-emerald-300 text-emerald-600 bg-emerald-50 cursor-default'
+                : 'border border-black text-black hover:bg-black hover:text-white active:scale-[0.97]'
+              }`}
           >
-            Запросить видео
+            {hasRequest ? 'Видео запрошено ✓' : 'Запросить видео'}
           </button>
           <button
+            onClick={e => { e.preventDefault(); e.stopPropagation() }}
             className="w-full py-2 rounded-xl bg-black text-white text-sm font-medium
                        hover:bg-gray-800 active:scale-[0.97]
                        transition-all duration-150"
@@ -93,6 +108,6 @@ export default function ProductCard({ product, matchPct, onRequestVideo }: Props
           </button>
         </div>
       </div>
-    </article>
+    </Link>
   )
 }

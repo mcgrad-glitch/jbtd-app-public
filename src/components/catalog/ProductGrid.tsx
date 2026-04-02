@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { Database } from '@/lib/supabase/types'
 import ProductCard from './ProductCard'
@@ -20,17 +21,14 @@ interface ProductWithScore extends ProductRow {
 }
 
 interface Props {
-  /** job из searchParams страницы (может отсутствовать) */
   job: string | null
-  /** statement задачи, загруженный на сервере */
   jobStatement: string | null
 }
 
-// Хэш «приоритет → тег» для расчёта совпадения
 const PRIORITY_TAG: Record<string, string> = {
-  'Надёжный бренд':       'reliable',
-  'Лучшая цена':          'budget',
-  'Долгий срок службы':   'durable',
+  'Надёжный бренд':     'reliable',
+  'Лучшая цена':        'budget',
+  'Долгий срок службы': 'durable',
 }
 
 function calcMatchPct(product: ProductRow, contextTags: string[]): number {
@@ -40,35 +38,35 @@ function calcMatchPct(product: ProductRow, contextTags: string[]): number {
 }
 
 export default function ProductGrid({ job: jobFromParams, jobStatement: statementFromServer }: Props) {
-  const [products, setProducts]     = useState<ProductWithScore[]>([])
-  const [allTags, setAllTags]       = useState<string[]>([])
-  const [activeTags, setActiveTags] = useState<string[]>([])
+  const router = useRouter()
+
+  const [products,     setProducts]     = useState<ProductWithScore[]>([])
+  const [allTags,      setAllTags]      = useState<string[]>([])
+  const [activeTags,   setActiveTags]   = useState<string[]>([])
   const [jobStatement, setJobStatement] = useState<string | null>(statementFromServer)
-  const [loading, setLoading]       = useState(true)
-  const [error, setError]           = useState<string | null>(null)
+  const [loading,      setLoading]      = useState(true)
+  const [error,        setError]        = useState<string | null>(null)
+  const [userId,       setUserId]       = useState<string | null>(null)
+  // product_id → уже есть запрос
+  const [requestedIds, setRequestedIds] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     async function load() {
       setLoading(true)
       setError(null)
 
-      // 1. Читаем контекст из localStorage (или берём job из searchParams)
       let context: Partial<JobContext> = {}
       try {
         const raw = localStorage.getItem('job_context')
         if (raw) context = JSON.parse(raw) as JobContext
-      } catch { /* нет localStorage — норм */ }
+      } catch { /* */ }
 
-      const jobKey = context.job ?? jobFromParams ?? null
+      const jobKey    = context.job ?? jobFromParams ?? null
       const priorities = context.priorities ?? []
-      const budget = context.budget ?? null
+      const budget    = context.budget ?? null
 
-      if (!jobKey) {
-        setLoading(false)
-        return
-      }
+      if (!jobKey) { setLoading(false); return }
 
-      // 2. Теги для расчёта совпадения
       const contextTags = [
         jobKey,
         ...priorities.map(p => PRIORITY_TAG[p]).filter(Boolean),
@@ -77,7 +75,22 @@ export default function ProductGrid({ job: jobFromParams, jobStatement: statemen
       try {
         const supabase = createClient()
 
-        // 3. Загружаем statement задачи если не получили с сервера
+        // Два независимых запроса параллельно
+        const [{ data: { user } }, productsResult] = await Promise.all([
+          supabase.auth.getUser(),
+          (() => {
+            let q = supabase
+              .from('products')
+              .select('*')
+              .contains('jtbd_tags', [jobKey])
+            if (budget != null) q = q.lte('price', budget)
+            return q
+          })(),
+        ])
+
+        if (user) setUserId(user.id)
+
+        // Загружаем statement задачи (последовательно — нужен context.jobId)
         if (!statementFromServer && context.jobId) {
           const { data: jobData } = await supabase
             .from('jobs')
@@ -87,37 +100,33 @@ export default function ProductGrid({ job: jobFromParams, jobStatement: statemen
           if (jobData) setJobStatement(jobData.statement)
         }
 
-        // 4. Запрашиваем продукты по тегу задачи
-        let query = supabase
-          .from('products')
-          .select('*')
-          .contains('jtbd_tags', [jobKey])
+        if (productsResult.error) throw productsResult.error
 
-        // Фильтр по бюджету
-        if (budget != null) {
-          query = query.lte('price', budget)
-        }
+        const rows = (productsResult.data ?? []) as ProductRow[]
 
-        const { data, error: supaErr } = await query
-
-        if (supaErr) throw supaErr
-
-        const rows = (data ?? []) as ProductRow[]
-
-        // 5. Считаем совпадение и сортируем
         const scored: ProductWithScore[] = rows
           .map(p => ({ ...p, matchPct: calcMatchPct(p, contextTags) }))
           .sort((a, b) => b.matchPct - a.matchPct)
 
-        // 6. Уникальные теги для фильтров (без системных job-ключей)
         const JOB_KEYS = new Set(['content', 'work', 'music', 'gaming', 'gift', 'home'])
         const tagSet = new Set<string>()
-        rows.forEach(p => p.jtbd_tags.forEach(t => {
-          if (!JOB_KEYS.has(t)) tagSet.add(t)
-        }))
+        rows.forEach(p => p.jtbd_tags.forEach(t => { if (!JOB_KEYS.has(t)) tagSet.add(t) }))
         setAllTags([...tagSet].sort())
 
         setProducts(scored)
+
+        // Загружаем существующие video_requests для этого пользователя
+        if (user && rows.length > 0) {
+          const productIds = rows.map(r => r.id)
+          const { data: existing } = await supabase
+            .from('video_requests')
+            .select('product_id')
+            .eq('user_id', user.id)
+            .in('product_id', productIds)
+          if (existing) {
+            setRequestedIds(new Set(existing.map(r => r.product_id)))
+          }
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Ошибка загрузки')
       } finally {
@@ -135,10 +144,22 @@ export default function ProductGrid({ job: jobFromParams, jobStatement: statemen
     )
   }, [])
 
-  const handleRequestVideo = useCallback((productId: string) => {
-    // TODO: открыть форму запроса видео
-    console.log('request video for', productId)
-  }, [])
+  const handleRequestVideo = useCallback(async (productId: string) => {
+    if (!userId) { router.push('/auth'); return }
+
+    // Оптимистичное обновление
+    setRequestedIds(prev => new Set([...prev, productId]))
+
+    const supabase = createClient()
+    const { error } = await supabase
+      .from('video_requests')
+      .insert({ user_id: userId, product_id: productId, status: 'pending' })
+
+    if (error) {
+      // Откатываем если не удалось
+      setRequestedIds(prev => { const n = new Set(prev); n.delete(productId); return n })
+    }
+  }, [userId, router])
 
   const visibleProducts = activeTags.length
     ? products.filter(p => activeTags.every(t => p.jtbd_tags.includes(t)))
@@ -149,7 +170,6 @@ export default function ProductGrid({ job: jobFromParams, jobStatement: statemen
   if (loading) {
     return (
       <div className="flex flex-col gap-4 py-8">
-        {/* Скелетоны */}
         {[1, 2, 3, 4].map(i => (
           <div key={i} className="rounded-2xl bg-gray-100 animate-pulse h-64" />
         ))}
@@ -213,6 +233,7 @@ export default function ProductGrid({ job: jobFromParams, jobStatement: statemen
               key={product.id}
               product={product}
               matchPct={product.matchPct}
+              hasRequest={requestedIds.has(product.id)}
               onRequestVideo={handleRequestVideo}
             />
           ))}

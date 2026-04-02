@@ -48,6 +48,7 @@ export interface Database {
           specs?: Json
           created_at?: string
         }
+        Relationships: []
       }
       jobs: {
         Row: {
@@ -71,6 +72,7 @@ export interface Database {
           context_questions?: Json
           created_at?: string
         }
+        Relationships: []
       }
       video_requests: {
         Row: {
@@ -79,7 +81,7 @@ export interface Database {
           product_id: string
           job_id: string | null
           question: string | null
-          status: VideoRequestStatus
+          status: 'pending' | 'filming' | 'ready'
           created_at: string
           updated_at: string
         }
@@ -89,7 +91,7 @@ export interface Database {
           product_id: string
           job_id?: string | null
           question?: string | null
-          status?: VideoRequestStatus
+          status?: 'pending' | 'filming' | 'ready'
           created_at?: string
           updated_at?: string
         }
@@ -99,10 +101,33 @@ export interface Database {
           product_id?: string
           job_id?: string | null
           question?: string | null
-          status?: VideoRequestStatus
+          status?: 'pending' | 'filming' | 'ready'
           created_at?: string
           updated_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "video_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_requests_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_requests_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       videos: {
         Row: {
@@ -135,12 +160,35 @@ export interface Database {
           is_public?: boolean
           created_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "videos_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "videos_expert_id_fkey"
+            columns: ["expert_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
     }
-    Views: Record<string, never>
-    Functions: Record<string, never>
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
     Enums: {
-      video_request_status: VideoRequestStatus
+      video_request_status: 'pending' | 'filming' | 'ready'
+    }
+    CompositeTypes: {
+      [_ in never]: never
     }
   }
 }
