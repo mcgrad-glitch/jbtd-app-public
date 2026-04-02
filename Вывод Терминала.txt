@@ -1,0 +1,48 @@
+Last login: Thu Apr  2 16:07:46 on ttys000
+kudrins@MacBook-Air-Kudrins ~ % nano ~/my-app/.env.local
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  UW PICO 5.09         File: /Users/kudrins/my-app/.env.local         Modified  
+
+$DlQKUnK6v74UGD3YOA7Wc67N_JGb9jpUYZ0-VM
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+^G Get Help  ^O WriteOut  ^R Read File ^Y Prev Pg   ^K Cut Text  ^C Cur Pos   
+^X Exit      ^J Justify   ^W Where is  ^V Next Pg   ^U UnCut Text^T To Spell  
