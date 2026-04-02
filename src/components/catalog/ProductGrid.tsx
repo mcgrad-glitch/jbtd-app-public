@@ -151,9 +151,13 @@ export default function ProductGrid({ job: jobFromParams, jobStatement: statemen
     setRequestedIds(prev => new Set([...prev, productId]))
 
     const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    console.log('current user:', user)
+    if (!user) { router.push('/auth'); setRequestedIds(prev => { const n = new Set(prev); n.delete(productId); return n }); return }
+    console.log('user.id before INSERT:', user.id)
     const { error } = await supabase
       .from('video_requests')
-      .insert({ user_id: userId, product_id: productId, status: 'pending' })
+      .insert({ user_id: user.id, product_id: productId, status: 'pending' })
 
     if (error) {
       // Откатываем если не удалось

@@ -134,25 +134,30 @@ export default function ExpertDashboard({ expertId }: { expertId: string }) {
     setUploadErr(prev => ({ ...prev, [request.id]: '' }))
 
     const supabase = createClient()
-    const storagePath = `${request.product_id}/${request.id}.mp4`
 
-    // 1. Upload в Storage
-    const { error: uploadError } = await supabase.storage
-      .from('videos')
-      .upload(storagePath, file, { upsert: true, contentType: file.type })
+    // 1. Upload через API route (service role обходит RLS Storage)
+    const formData = new FormData()
+    formData.append('file',        file)
+    formData.append('product_id',  request.product_id)
+    formData.append('request_id',  request.id)
 
-    if (uploadError) {
-      setUploadErr(prev => ({ ...prev, [request.id]: uploadError.message }))
+    const uploadRes = await fetch('/api/upload-video', {
+      method: 'POST',
+      body:   formData,
+    })
+    const uploadJson = await uploadRes.json() as { url: string | null; error: string | null }
+
+    console.log('upload response:', uploadRes.status, uploadJson)
+
+    if (!uploadRes.ok || uploadJson.error || !uploadJson.url) {
+      alert('Upload error: ' + (uploadJson.error ?? 'Unknown error'))
       setUploading(prev => ({ ...prev, [request.id]: false }))
       return
     }
 
-    // 2. Публичный URL (синхронный, без ошибки)
-    const { data: { publicUrl } } = supabase.storage
-      .from('videos')
-      .getPublicUrl(storagePath)
+    const publicUrl = uploadJson.url
 
-    // 3. Запись в таблицу videos
+    // 2. Запись в таблицу videos
     await supabase.from('videos').insert({
       product_id:   request.product_id,
       job_id:       request.job_id,

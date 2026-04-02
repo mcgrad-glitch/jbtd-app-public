@@ -59,62 +59,74 @@ export default function ProductDetail({ product }: { product: ProductRow }) {
   const [specsOpen,    setSpecsOpen]    = useState(false)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  // ── инициализация: auth + localStorage ──────────────────────────────────
+  // ── инициализация: auth + localStorage + video_request + Realtime ─────────
   useEffect(() => {
     const supabase = createClient()
+    let channel: ReturnType<typeof supabase.channel> | null = null
 
-    // 1. Текущий пользователь
-    supabase.auth.getUser().then(({ data }) => {
-      setUserId(data.user?.id ?? null)
-    })
+    async function init() {
+      // 1. Текущий пользователь — ждём ДО запроса video_request
+      const { data: { user } } = await supabase.auth.getUser()
+      const uid = user?.id ?? null
+      setUserId(uid)
 
-    // 2. job_context из localStorage
-    try {
-      const raw = localStorage.getItem('job_context')
-      if (raw) {
-        const ctx: JobContext = JSON.parse(raw)
-        const tags = [ctx.job, ...ctx.priorities.map(p => PRIORITY_TAG[p]).filter(Boolean)]
-        setMatchPct(calcMatchPct(product, tags))
-      }
-    } catch { /* нет localStorage */ }
-  }, [product])
-
-  // ── загрузка video_request + Realtime ───────────────────────────────────
-  useEffect(() => {
-    if (!userId) return
-
-    const supabase = createClient()
-
-    // Начальная загрузка
-    supabase
-      .from('video_requests')
-      .select('*')
-      .eq('product_id', product.id)
-      .eq('user_id', userId)
-      .single()
-      .then(({ data }) => applyRequest(data))
-
-    // Realtime — слушаем изменения по product_id
-    const channel = supabase
-      .channel(`vr:${product.id}:${userId}`)
-      .on(
-        'postgres_changes',
-        {
-          event:  '*',
-          schema: 'public',
-          table:  'video_requests',
-          filter: `product_id=eq.${product.id}`,
-        },
-        payload => {
-          const row = payload.new as VideoRequest
-          if (row.user_id === userId) applyRequest(row)
+      // 2. job_context из localStorage
+      try {
+        const raw = localStorage.getItem('job_context')
+        if (raw) {
+          const ctx: JobContext = JSON.parse(raw)
+          const tags = [ctx.job, ...ctx.priorities.map(p => PRIORITY_TAG[p]).filter(Boolean)]
+          setMatchPct(calcMatchPct(product, tags))
         }
-      )
-      .subscribe()
+      } catch { /* нет localStorage */ }
 
-    return () => { supabase.removeChannel(channel) }
+      // 3. Загрузка video_request — только после того как знаем uid
+      console.log('fetching video request for:', product.id, uid)
+      if (!uid) return
+
+      const { data: vrData, error: vrError } = await supabase
+        .from('video_requests')
+        .select('*')
+        .eq('product_id', product.id)
+        .eq('user_id', uid)
+        .order('created_at', { ascending: false })
+        .limit(1)
+
+      console.log('video_request result:', JSON.stringify(vrData))
+      console.log('video_request error:', JSON.stringify(vrError))
+
+      const row = vrData?.[0] ?? null
+      if (row) {
+        setVideoRequest(row)
+        setVideoStatus(row.status === 'ready' ? 'ready' :
+                       row.status === 'filming' ? 'pending' : 'pending')
+        console.log('setting video status to:', row.status)
+      }
+
+      // 4. Realtime — подписка после загрузки
+      channel = supabase
+        .channel(`vr:${product.id}:${uid}`)
+        .on(
+          'postgres_changes',
+          {
+            event:  '*',
+            schema: 'public',
+            table:  'video_requests',
+            filter: `product_id=eq.${product.id}`,
+          },
+          payload => {
+            const row = payload.new as VideoRequest
+            if (row.user_id === uid) applyRequest(row)
+          }
+        )
+        .subscribe()
+    }
+
+    init()
+
+    return () => { if (channel) supabase.removeChannel(channel) }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId, product.id])
+  }, [product.id])
 
   // ── таймер "ожидания" для pending-состояния ──────────────────────────────
   useEffect(() => {
@@ -140,18 +152,43 @@ export default function ProductDetail({ product }: { product: ProductRow }) {
 
     setSubmitting(true)
     const supabase = createClient()
-    const { data } = await supabase
-      .from('video_requests')
-      .insert({
-        user_id:    userId,
-        product_id: product.id,
-        question:   question.trim() || null,
-        status:     'pending',
-      })
-      .select()
-      .single()
 
-    if (data) applyRequest(data)
+    const { data: sessionData } = await supabase.auth.getSession()
+    console.log('session:', JSON.stringify(sessionData))
+
+    const { data: { user } } = await supabase.auth.getUser()
+    console.log('user:', user?.id, user?.email)
+
+    if (!user) { router.push('/auth'); setSubmitting(false); return }
+
+    console.log('productId value:', product.id)
+    console.log('productId type:', typeof product.id)
+    console.log('user.id value:', user?.id)
+
+    const insertData = {
+      user_id:    user?.id,
+      product_id: product.id,
+      question:   question || null,
+      status:     'pending' as const,
+    }
+    console.log('insertData:', JSON.stringify(insertData))
+
+    const { data: insertResult, error: insertError } = await supabase
+      .from('video_requests')
+      .insert(insertData)
+      .select()
+
+    console.log('insert result:', JSON.stringify(insertResult))
+    console.log('insert error:', JSON.stringify(insertError))
+
+    if (insertError) {
+      console.error('Full error:', insertError)
+      alert(insertError.message + ' | ' + insertError.details + ' | ' + insertError.hint)
+      setSubmitting(false)
+      return
+    }
+
+    if (insertResult?.[0]) applyRequest(insertResult[0])
     setSubmitting(false)
   }, [userId, product.id, question, router])
 
@@ -281,6 +318,7 @@ export default function ProductDetail({ product }: { product: ProductRow }) {
         )}
 
         {/* ── 5. Блок видео ────────────────────────────────────────────── */}
+        {console.log('render: videoStatus=', videoStatus, 'videoRequest=', videoRequest?.id)}
         <div className="rounded-2xl border border-gray-200 overflow-hidden">
           <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
             <h2 className="text-sm font-semibold text-gray-900">Видеообзор</h2>
