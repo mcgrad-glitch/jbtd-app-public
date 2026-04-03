@@ -94,7 +94,7 @@ export default function JobQuiz() {
         setJobRow(data)
         const raw = data.context_questions
         const qs: ContextQuestion[] = Array.isArray(raw)
-          ? (raw as ContextQuestion[]).slice(0, 2)
+          ? (raw as unknown as ContextQuestion[]).slice(0, 2)
           : []
         setQuestions(qs)
       }
