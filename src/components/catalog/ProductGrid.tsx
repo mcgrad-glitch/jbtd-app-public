@@ -173,9 +173,9 @@ export default function ProductGrid({ job: jobFromParams, jobStatement: statemen
 
   if (loading) {
     return (
-      <div className="flex flex-col gap-4 py-8">
+      <div className="flex flex-col gap-3 py-8">
         {[1, 2, 3, 4].map(i => (
-          <div key={i} className="rounded-2xl bg-gray-100 animate-pulse h-64" />
+          <div key={i} className="animate-pulse" style={{ height: 260, borderRadius: 'var(--radius-lg)', background: 'var(--bg-tertiary)' }} />
         ))}
       </div>
     )
@@ -184,7 +184,7 @@ export default function ProductGrid({ job: jobFromParams, jobStatement: statemen
   if (error) {
     return (
       <div className="py-12 text-center">
-        <p className="text-sm text-red-500">{error}</p>
+        <p className="font-body" style={{ fontSize: 13, color: '#EF4444' }}>{error}</p>
       </div>
     )
   }
@@ -194,11 +194,11 @@ export default function ProductGrid({ job: jobFromParams, jobStatement: statemen
       {/* Заголовок */}
       <div className="mb-2">
         {jobStatement && (
-          <h1 className="text-xl font-semibold text-gray-900 leading-snug mb-1">
+          <h1 className="font-heading leading-snug mb-1" style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-primary)' }}>
             {jobStatement}
           </h1>
         )}
-        <p className="text-sm text-gray-500">
+        <p className="font-body" style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
           Найдено {visibleProducts.length} устройств
         </p>
       </div>
@@ -212,11 +212,7 @@ export default function ProductGrid({ job: jobFromParams, jobStatement: statemen
               <button
                 key={tag}
                 onClick={() => toggleTag(tag)}
-                className={`px-3 py-1.5 rounded-full text-xs border transition-all duration-150
-                  ${active
-                    ? 'bg-black text-white border-black'
-                    : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'
-                  }`}
+                className={`pill ${active ? 'active' : ''}`}
               >
                 {tag}
               </button>
@@ -228,7 +224,7 @@ export default function ProductGrid({ job: jobFromParams, jobStatement: statemen
       {/* Сетка */}
       {visibleProducts.length === 0 ? (
         <div className="py-12 text-center">
-          <p className="text-sm text-gray-400">Ничего не найдено. Попробуйте убрать фильтры.</p>
+          <p className="font-body" style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>Ничего не найдено. Попробуйте убрать фильтры.</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-3">

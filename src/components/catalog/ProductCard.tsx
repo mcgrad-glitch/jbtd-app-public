@@ -18,11 +18,26 @@ export default function ProductCard({ product, matchPct, hasRequest, onRequestVi
   return (
     <Link
       href={`/product/${product.id}`}
-      className="flex flex-col rounded-2xl border border-gray-200 overflow-hidden bg-white
-                 hover:border-gray-300 hover:shadow-sm transition-all duration-150"
+      className="flex flex-col overflow-hidden bg-white transition-all duration-200 group"
+      style={{
+        border: '1px solid var(--border)',
+        borderRadius: 'var(--radius-lg)',
+      }}
+      onMouseEnter={e => {
+        const el = e.currentTarget
+        el.style.borderColor = 'var(--brand-primary)'
+        el.style.boxShadow = 'var(--shadow-md)'
+        el.style.transform = 'translateY(-2px)'
+      }}
+      onMouseLeave={e => {
+        const el = e.currentTarget
+        el.style.borderColor = 'var(--border)'
+        el.style.boxShadow = 'none'
+        el.style.transform = 'translateY(0)'
+      }}
     >
       {/* Фото */}
-      <div className="relative w-full aspect-square bg-gray-50 flex items-center justify-center">
+      <div className="relative w-full flex items-center justify-center overflow-hidden" style={{ height: 200, background: 'var(--bg-secondary)' }}>
         {coverImage ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -31,19 +46,11 @@ export default function ProductCard({ product, matchPct, hasRequest, onRequestVi
             className="w-full h-full object-contain p-4"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-            <svg
-              className="w-12 h-12 text-gray-300"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1}
-                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
+          <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--bg-tertiary)' }}>
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <circle cx="8.5" cy="8.5" r="1.5"/>
+              <polyline points="21 15 16 10 5 21"/>
             </svg>
           </div>
         )}
@@ -51,13 +58,19 @@ export default function ProductCard({ product, matchPct, hasRequest, onRequestVi
         {/* Бейдж совпадения */}
         {matchPct > 0 && (
           <span
-            className={`absolute top-3 right-3 px-2 py-0.5 rounded-full text-xs font-medium
-              ${matchPct >= 80
-                ? 'bg-emerald-100 text-emerald-700'
+            className="absolute top-2.5 right-2.5 font-body"
+            style={{
+              padding: '3px 8px',
+              borderRadius: 999,
+              fontSize: 11,
+              fontWeight: 500,
+              ...(matchPct >= 80
+                ? { background: 'var(--brand-gradient)', color: '#fff' }
                 : matchPct >= 50
-                  ? 'bg-amber-100 text-amber-700'
-                  : 'bg-gray-100 text-gray-500'
-              }`}
+                  ? { background: 'linear-gradient(135deg,#EEF2FF,#FDF2F8)', color: 'var(--brand-primary)', border: '1px solid var(--brand-primary)' }
+                  : { background: 'var(--bg-tertiary)', color: 'var(--text-tertiary)' }
+              ),
+            }}
           >
             {matchPct}% совпадение
           </span>
@@ -67,22 +80,22 @@ export default function ProductCard({ product, matchPct, hasRequest, onRequestVi
       {/* Контент */}
       <div className="flex flex-col flex-1 p-3 gap-1">
         {product.brand && (
-          <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">
+          <span className="font-body uppercase tracking-wider" style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-tertiary)', letterSpacing: '0.06em' }}>
             {product.brand}
           </span>
         )}
 
-        <p className="text-sm font-medium text-gray-900 leading-snug">
+        <p className="font-heading leading-snug" style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>
           {product.headline}
         </p>
 
         {product.price != null && (
-          <p className="mt-1 text-base font-semibold text-gray-900">
+          <p className="mt-1 font-heading" style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-primary)' }}>
             {product.price.toLocaleString('ru-RU')} ₽
           </p>
         )}
 
-        {/* Кнопки — stopPropagation чтобы не триггерить Link */}
+        {/* Кнопки */}
         <div
           className="mt-auto pt-3 flex flex-col gap-2"
           onClick={e => e.preventDefault()}
@@ -90,19 +103,31 @@ export default function ProductCard({ product, matchPct, hasRequest, onRequestVi
           <button
             disabled={hasRequest}
             onClick={e => { e.preventDefault(); e.stopPropagation(); onRequestVideo(product.id) }}
-            className={`w-full py-2 rounded-xl text-sm font-medium transition-all duration-150
-              ${hasRequest
-                ? 'border border-emerald-300 text-emerald-600 bg-emerald-50 cursor-default'
-                : 'border border-black text-black hover:bg-black hover:text-white active:scale-[0.97]'
-              }`}
+            className="w-full font-body transition-all duration-150 active:scale-[0.97]"
+            style={{
+              padding: '8px 12px',
+              borderRadius: 'var(--radius-sm)',
+              fontSize: 13,
+              fontWeight: 500,
+              cursor: hasRequest ? 'default' : 'pointer',
+              ...(hasRequest
+                ? { border: '1.5px solid var(--success)', color: 'var(--success)', background: '#F0FDF4' }
+                : { border: '1.5px solid var(--brand-primary)', color: 'var(--brand-primary)', background: 'transparent' }
+              ),
+            }}
+            onMouseEnter={e => {
+              if (!hasRequest) (e.currentTarget as HTMLButtonElement).style.background = 'linear-gradient(135deg,#EEF2FF,#FDF2F8)'
+            }}
+            onMouseLeave={e => {
+              if (!hasRequest) (e.currentTarget as HTMLButtonElement).style.background = 'transparent'
+            }}
           >
             {hasRequest ? 'Видео запрошено ✓' : 'Запросить видео'}
           </button>
           <button
             onClick={e => { e.preventDefault(); e.stopPropagation() }}
-            className="w-full py-2 rounded-xl bg-black text-white text-sm font-medium
-                       hover:bg-gray-800 active:scale-[0.97]
-                       transition-all duration-150"
+            className="btn-primary w-full"
+            style={{ padding: '8px 12px', borderRadius: 'var(--radius-sm)', fontSize: 13 }}
           >
             Купить
           </button>

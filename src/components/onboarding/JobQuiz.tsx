@@ -137,17 +137,17 @@ export default function JobQuiz() {
 
   // ── прогресс-бар ─────────────────────────────────────────────────────────
 
-  const progressWidth = step === 1 ? 'w-1/3' : step === 2 ? 'w-2/3' : 'w-full'
+  const progressPct = step === 1 ? '33%' : step === 2 ? '66%' : '100%'
 
   // ─────────────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center px-4 py-6">
+    <div className="min-h-screen flex flex-col items-center px-4 py-6" style={{ background: 'var(--bg-primary)' }}>
       <div className="w-full max-w-[390px] flex flex-col flex-1">
 
         {/* Прогресс-бар */}
         <div className="mb-8">
-          <div className="flex justify-between text-xs text-gray-400 mb-2">
+          <div className="flex justify-between mb-2" style={{ fontSize: 12, color: 'var(--text-tertiary)', fontFamily: 'var(--font-dm-sans)' }}>
             <span>Шаг {step} из 3</span>
             <span>
               {step === 1 && 'Выбор задачи'}
@@ -155,20 +155,18 @@ export default function JobQuiz() {
               {step === 3 && 'Бюджет'}
             </span>
           </div>
-          <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-            <div
-              className={`h-full bg-black rounded-full transition-all duration-300 ${progressWidth}`}
-            />
+          <div className="progress-track">
+            <div className="progress-fill" style={{ width: progressPct }} />
           </div>
         </div>
 
         {/* ── Шаг 1 ─────────────────────────────────────────────────────── */}
         {step === 1 && (
           <>
-            <h1 className="text-2xl font-semibold text-gray-900 mb-1">
+            <h1 className="font-heading mb-1" style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-primary)' }}>
               Что хотите сделать?
             </h1>
-            <p className="text-sm text-gray-500 mb-6">
+            <p className="mb-6 font-body" style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
               Выберите главную задачу — подберём подходящую технику
             </p>
 
@@ -178,14 +176,38 @@ export default function JobQuiz() {
                   key={tile.key}
                   onClick={() => handleJobSelect(tile.key)}
                   disabled={loading}
-                  className="flex flex-col items-start p-4 rounded-2xl border border-gray-200 text-left
-                             hover:border-black hover:shadow-sm active:scale-[0.97]
-                             transition-all duration-150 disabled:opacity-50"
+                  className="flex flex-col items-start p-4 text-left transition-all duration-150 disabled:opacity-50 active:scale-[0.97]"
+                  style={{
+                    borderRadius: 'var(--radius-lg)',
+                    border: '1.5px solid var(--border)',
+                    background: 'var(--bg-primary)',
+                  }}
+                  onMouseEnter={e => {
+                    const el = e.currentTarget
+                    el.style.borderColor = 'var(--brand-primary)'
+                    el.style.background = 'linear-gradient(135deg, #EEF2FF, #FDF2F8)'
+                    el.style.boxShadow = 'var(--shadow-md)'
+                  }}
+                  onMouseLeave={e => {
+                    const el = e.currentTarget
+                    el.style.borderColor = 'var(--border)'
+                    el.style.background = 'var(--bg-primary)'
+                    el.style.boxShadow = 'none'
+                  }}
                 >
-                  <span className="text-sm font-medium text-gray-900 leading-tight">
+                  <div className="icon-box mb-3">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      {tile.key === 'gaming'    && <><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4M8 10v4M15 12h.01M18 12h.01"/></>}
+                      {tile.key === 'streaming' && <><circle cx="12" cy="12" r="2"/><path d="M4.93 4.93a10 10 0 0 0 0 14.14M19.07 4.93a10 10 0 0 1 0 14.14M7.76 7.76a6 6 0 0 0 0 8.49M16.24 7.76a6 6 0 0 1 0 8.49"/></>}
+                      {tile.key === 'creator'   && <><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></>}
+                      {tile.key === 'work'      && <><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></>}
+                      {tile.key === 'company'   && <><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></>}
+                    </svg>
+                  </div>
+                  <span className="font-heading leading-tight" style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>
                     {tile.title}
                   </span>
-                  <span className="text-xs text-gray-400 mt-0.5 leading-tight">
+                  <span className="font-body mt-1 leading-tight" style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
                     {tile.hint}
                   </span>
                 </button>
@@ -193,7 +215,7 @@ export default function JobQuiz() {
             </div>
 
             {loading && (
-              <p className="text-center text-sm text-gray-400 mt-6">Загружаем вопросы…</p>
+              <p className="text-center mt-6 font-body" style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>Загружаем вопросы…</p>
             )}
           </>
         )}
@@ -203,27 +225,28 @@ export default function JobQuiz() {
           <>
             <button
               onClick={() => setStep(1)}
-              className="flex items-center text-sm text-gray-400 hover:text-gray-700 mb-6 -ml-1 transition-colors"
+              className="flex items-center mb-6 -ml-1 transition-colors font-body"
+              style={{ fontSize: 13, color: 'var(--text-tertiary)' }}
             >
               <span className="mr-1">←</span> Назад
             </button>
 
-            <h1 className="text-2xl font-semibold text-gray-900 mb-1">
+            <h1 className="font-heading mb-1" style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-primary)' }}>
               Расскажите подробнее
             </h1>
-            <p className="text-sm text-gray-500 mb-6">
+            <p className="mb-6 font-body" style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
               Пара уточняющих вопросов
             </p>
 
             {questions.length === 0 ? (
-              <p className="text-sm text-gray-400 mb-6">
+              <p className="mb-6 font-body" style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>
                 Вопросы не найдены — переходим к бюджету.
               </p>
             ) : (
               <div className="flex flex-col gap-8">
                 {questions.map(q => (
                   <div key={q.id}>
-                    <p className="text-sm font-medium text-gray-800 mb-3">{q.question}</p>
+                    <p className="mb-3 font-body" style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)' }}>{q.question}</p>
                     <div className="flex flex-wrap gap-2">
                       {q.options.map(opt => {
                         const selected = answers[q.id] === opt
@@ -231,11 +254,7 @@ export default function JobQuiz() {
                           <button
                             key={opt}
                             onClick={() => handleAnswer(q.id, opt)}
-                            className={`px-4 py-2 rounded-full text-sm border transition-all duration-150
-                              ${selected
-                                ? 'bg-black text-white border-black'
-                                : 'bg-white text-gray-700 border-gray-200 hover:border-gray-400'
-                              }`}
+                            className={`pill ${selected ? 'active' : ''}`}
                           >
                             {opt}
                           </button>
@@ -251,9 +270,8 @@ export default function JobQuiz() {
               <button
                 onClick={() => setStep(3)}
                 disabled={!canProceedStep2}
-                className="w-full py-3.5 rounded-2xl bg-black text-white text-sm font-medium
-                           disabled:opacity-30 hover:bg-gray-800 active:scale-[0.98]
-                           transition-all duration-150"
+                className="btn-primary w-full"
+                style={{ borderRadius: 'var(--radius-md)', padding: '14px 24px' }}
               >
                 Продолжить
               </button>
@@ -266,23 +284,24 @@ export default function JobQuiz() {
           <>
             <button
               onClick={() => setStep(2)}
-              className="flex items-center text-sm text-gray-400 hover:text-gray-700 mb-6 -ml-1 transition-colors"
+              className="flex items-center mb-6 -ml-1 transition-colors font-body"
+              style={{ fontSize: 13, color: 'var(--text-tertiary)' }}
             >
               <span className="mr-1">←</span> Назад
             </button>
 
-            <h1 className="text-2xl font-semibold text-gray-900 mb-1">
+            <h1 className="font-heading mb-1" style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-primary)' }}>
               Бюджет и приоритеты
             </h1>
-            <p className="text-sm text-gray-500 mb-8">
+            <p className="mb-8 font-body" style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
               Что важнее — сориентируем по выбору
             </p>
 
             {/* Слайдер бюджета */}
             <div className="mb-8">
               <div className="flex items-baseline justify-between mb-3">
-                <span className="text-sm text-gray-500">Бюджет</span>
-                <span className="text-lg font-semibold text-gray-900">
+                <span className="font-body" style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Бюджет</span>
+                <span className="font-heading" style={{ fontSize: 28, fontWeight: 800, color: 'var(--text-primary)' }}>
                   {formatBudget(budget)}
                 </span>
               </div>
@@ -293,21 +312,9 @@ export default function JobQuiz() {
                 step={1000}
                 value={budget}
                 onChange={e => setBudget(Number(e.target.value))}
-                className="w-full h-1.5 rounded-full bg-gray-200 appearance-none cursor-pointer
-                           [&::-webkit-slider-thumb]:appearance-none
-                           [&::-webkit-slider-thumb]:w-5
-                           [&::-webkit-slider-thumb]:h-5
-                           [&::-webkit-slider-thumb]:rounded-full
-                           [&::-webkit-slider-thumb]:bg-black
-                           [&::-webkit-slider-thumb]:shadow-sm
-                           [&::-webkit-slider-thumb]:cursor-pointer
-                           [&::-moz-range-thumb]:w-5
-                           [&::-moz-range-thumb]:h-5
-                           [&::-moz-range-thumb]:rounded-full
-                           [&::-moz-range-thumb]:bg-black
-                           [&::-moz-range-thumb]:border-0"
+                className="budget-slider"
               />
-              <div className="flex justify-between text-xs text-gray-400 mt-1.5">
+              <div className="flex justify-between mt-1.5 font-body" style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
                 <span>{formatBudget(BUDGET_MIN)}</span>
                 <span>{formatBudget(BUDGET_MAX)}</span>
               </div>
@@ -315,7 +322,7 @@ export default function JobQuiz() {
 
             {/* Приоритеты */}
             <div className="mb-8">
-              <p className="text-sm font-medium text-gray-800 mb-3">
+              <p className="mb-3 font-body" style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)' }}>
                 Что важнее всего?
               </p>
               <div className="flex flex-wrap gap-2">
@@ -325,11 +332,7 @@ export default function JobQuiz() {
                     <button
                       key={p}
                       onClick={() => togglePriority(p)}
-                      className={`px-4 py-2 rounded-full text-sm border transition-all duration-150
-                        ${active
-                          ? 'bg-black text-white border-black'
-                          : 'bg-white text-gray-700 border-gray-200 hover:border-gray-400'
-                        }`}
+                      className={`pill ${active ? 'active' : ''}`}
                     >
                       {p}
                     </button>
@@ -341,8 +344,8 @@ export default function JobQuiz() {
             <div className="mt-auto">
               <button
                 onClick={handleFinish}
-                className="w-full py-3.5 rounded-2xl bg-black text-white text-sm font-medium
-                           hover:bg-gray-800 active:scale-[0.98] transition-all duration-150"
+                className="btn-primary w-full"
+                style={{ borderRadius: 'var(--radius-md)', padding: '14px 24px' }}
               >
                 Найти технику →
               </button>

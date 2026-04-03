@@ -1,0 +1,185 @@
+/* ─── Design System: Vibrant Tech ─────────────────────────────────────────── */
+
+:root {
+  /* Brand */
+  --brand-primary:       #6366F1;
+  --brand-secondary:     #EC4899;
+  --brand-gradient:      linear-gradient(135deg, #6366F1, #EC4899);
+  --brand-gradient-soft: linear-gradient(135deg, #EEF2FF, #FDF2F8);
+
+  /* Backgrounds */
+  --bg-primary:   #FFFFFF;
+  --bg-secondary: #F8FAFC;
+  --bg-tertiary:  #F1F5F9;
+
+  /* Text */
+  --text-primary:   #0F172A;
+  --text-secondary: #475569;
+  --text-tertiary:  #94A3B8;
+
+  /* Border */
+  --border:       #E2E8F0;
+  --border-focus: #6366F1;
+
+  /* Status */
+  --success: #10B981;
+
+  /* Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md: 0 4px 16px rgba(99,102,241,.12);
+  --shadow-lg: 0 8px 32px rgba(99,102,241,.16);
+}
+
+/* ─── Typography ─────────────────────────────────────────────────────────── */
+
+.font-heading {
+  font-family: var(--font-sora), 'Sora', sans-serif;
+}
+
+.font-body {
+  font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+}
+
+/* ─── Gradient text utility ──────────────────────────────────────────────── */
+
+.text-gradient {
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── Gradient background utility ───────────────────────────────────────── */
+
+.bg-brand {
+  background: var(--brand-gradient);
+}
+
+.bg-brand-soft {
+  background: var(--brand-gradient-soft);
+}
+
+/* ─── Icon box utility (gradient square) ────────────────────────────────── */
+
+.icon-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: var(--brand-gradient);
+  flex-shrink: 0;
+}
+
+.icon-box-lg {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+}
+
+/* ─── Pill button ────────────────────────────────────────────────────────── */
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1.5px solid var(--border);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pill:hover {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+}
+
+.pill.active {
+  background: var(--brand-gradient-soft);
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+}
+
+/* ─── Primary button ─────────────────────────────────────────────────────── */
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
+  background: var(--brand-gradient);
+  color: #fff;
+  font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.1s ease;
+}
+
+.btn-primary:hover  { opacity: 0.9; }
+.btn-primary:active { transform: scale(0.98); }
+.btn-primary:disabled { opacity: 0.4; cursor: default; }
+
+/* ─── Progress bar ───────────────────────────────────────────────────────── */
+
+.progress-track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--bg-tertiary);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--brand-gradient);
+  transition: width 0.3s ease;
+}
+
+/* ─── Slider ─────────────────────────────────────────────────────────────── */
+
+.budget-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--brand-gradient);
+  cursor: pointer;
+  outline: none;
+}
+
+.budget-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid var(--brand-primary);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+}
+
+.budget-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid var(--brand-primary);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+}
