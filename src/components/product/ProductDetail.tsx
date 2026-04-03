@@ -53,6 +53,7 @@ export default function ProductDetail({ product }: { product: ProductRow }) {
   const [matchPct,     setMatchPct]     = useState(0)
   const [videoStatus,  setVideoStatus]  = useState<VideoStatus>('none')
   const [videoRequest, setVideoRequest] = useState<VideoRequest | null>(null)
+  const [videoUrl,     setVideoUrl]     = useState<string | null>(null)
   const [question,     setQuestion]     = useState('')
   const [submitting,   setSubmitting]   = useState(false)
   const [elapsed,      setElapsed]      = useState('')
@@ -101,6 +102,19 @@ export default function ProductDetail({ product }: { product: ProductRow }) {
         setVideoStatus(row.status === 'ready' ? 'ready' :
                        row.status === 'filming' ? 'pending' : 'pending')
         console.log('setting video status to:', row.status)
+
+        if (row.status === 'ready') {
+          const { data: videoData } = await supabase
+            .from('videos')
+            .select('url')
+            .eq('product_id', product.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+
+          const url = videoData?.[0]?.url ?? null
+          console.log('video url:', url)
+          setVideoUrl(url)
+        }
       }
 
       // 4. Realtime — подписка после загрузки
@@ -381,13 +395,13 @@ export default function ProductDetail({ product }: { product: ProductRow }) {
               <div className="flex flex-col gap-3">
                 {/* HTML5 video */}
                 <div className="rounded-xl overflow-hidden bg-black aspect-video">
-                  {/* videos таблица хранит url; здесь используем заглушку */}
                   <video
                     controls
                     className="w-full h-full"
                     playsInline
+                    src={videoUrl ?? undefined}
                   >
-                    <source src="#" type="video/mp4" />
+                    {videoUrl && <source src={videoUrl} type="video/mp4" />}
                   </video>
                 </div>
                 <a
