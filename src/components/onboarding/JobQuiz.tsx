@@ -15,13 +15,12 @@ interface ContextQuestion {
   options: string[]
 }
 
-type JobKey = 'content' | 'work' | 'music' | 'gaming' | 'gift' | 'home'
+type JobKey = 'gaming' | 'streaming' | 'creator' | 'work' | 'company'
 
 interface JobTile {
   key: JobKey
   title: string
-  subtitle: string
-  icon: string
+  hint: string
 }
 
 interface JobContext {
@@ -35,22 +34,20 @@ interface JobContext {
 // ─── константы ───────────────────────────────────────────────────────────────
 
 const JOB_TILES: JobTile[] = [
-  { key: 'content', title: 'Снимать контент', subtitle: 'фото, видео, стримы', icon: '🎥' },
-  { key: 'work',    title: 'Работать удалённо', subtitle: 'ноутбук, периферия', icon: '💻' },
-  { key: 'music',   title: 'Слушать музыку', subtitle: 'наушники, колонки', icon: '🎵' },
-  { key: 'gaming',  title: 'Играть в игры', subtitle: 'консоли, гарнитуры', icon: '🎮' },
-  { key: 'gift',    title: 'Подарить кому-то', subtitle: 'выбрать за другого', icon: '🎁' },
-  { key: 'home',    title: 'Умный дом', subtitle: 'автоматизация, IoT', icon: '🏠' },
+  { key: 'gaming',    title: 'Играть в игры',       hint: 'соревнования, погружение, с друзьями' },
+  { key: 'streaming', title: 'Стримить',             hint: 'трансляции, сообщество, шоу' },
+  { key: 'creator',   title: 'Создавать контент',    hint: 'дизайн, видео, 3D' },
+  { key: 'work',      title: 'Работать эффективно',  hint: 'офис, удалёнка, рутина' },
+  { key: 'company',   title: 'Для бизнеса',          hint: 'команда, офис, B2B' },
 ]
 
 // имена jobs в Supabase совпадают с tile.title
 const JOB_NAME_MAP: Record<JobKey, string> = {
-  content: 'Снимать контент',
-  work:    'Работать удалённо',
-  music:   'Слушать музыку',
-  gaming:  'Играть в игры',
-  gift:    'Подарить кому-то',
-  home:    'Умный дом',
+  gaming:    'Играть в игры',
+  streaming: 'Стримить',
+  creator:   'Создавать контент',
+  work:      'Работать эффективно',
+  company:   'Для бизнеса',
 }
 
 const PRIORITIES = ['Надёжный бренд', 'Лучшая цена', 'Долгий срок службы']
@@ -185,12 +182,11 @@ export default function JobQuiz() {
                              hover:border-black hover:shadow-sm active:scale-[0.97]
                              transition-all duration-150 disabled:opacity-50"
                 >
-                  <span className="text-2xl mb-2">{tile.icon}</span>
                   <span className="text-sm font-medium text-gray-900 leading-tight">
                     {tile.title}
                   </span>
                   <span className="text-xs text-gray-400 mt-0.5 leading-tight">
-                    {tile.subtitle}
+                    {tile.hint}
                   </span>
                 </button>
               ))}

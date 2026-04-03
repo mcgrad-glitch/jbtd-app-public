@@ -108,7 +108,7 @@ export default function ProductGrid({ job: jobFromParams, jobStatement: statemen
           .map(p => ({ ...p, matchPct: calcMatchPct(p, contextTags) }))
           .sort((a, b) => b.matchPct - a.matchPct)
 
-        const JOB_KEYS = new Set(['content', 'work', 'music', 'gaming', 'gift', 'home'])
+        const JOB_KEYS = new Set(['gaming', 'streaming', 'creator', 'work', 'company'])
         const tagSet = new Set<string>()
         rows.forEach(p => p.jtbd_tags.forEach(t => { if (!JOB_KEYS.has(t)) tagSet.add(t) }))
         setAllTags([...tagSet].sort())
