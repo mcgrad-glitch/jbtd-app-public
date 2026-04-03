@@ -213,7 +213,7 @@ export default function ProductDetail({ product }: { product: ProductRow }) {
   const outcomes: OutcomeItem[] = (() => {
     try {
       const raw = product.outcomes
-      if (Array.isArray(raw)) return raw as OutcomeItem[]
+      if (Array.isArray(raw)) return raw as unknown as OutcomeItem[]
     } catch { /* */ }
     return []
   })()
@@ -222,7 +222,7 @@ export default function ProductDetail({ product }: { product: ProductRow }) {
     try {
       const raw = product.specs
       if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
-        return raw as Record<string, string>
+        return raw as unknown as Record<string, string>
       }
     } catch { /* */ }
     return {}
