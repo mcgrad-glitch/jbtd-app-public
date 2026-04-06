@@ -18,11 +18,13 @@ export default function AuthForm() {
     setErrMsg('')
 
     const supabase = createClient()
+    const redirectUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/auth/confirm`
+    console.log('NEXT_PUBLIC_SITE_URL:', process.env.NEXT_PUBLIC_SITE_URL)
+    console.log('redirectUrl:', redirectUrl)
     const { error } = await supabase.auth.signInWithOtp({
-      email: email.trim(),
+      email,
       options: {
-        emailRedirectTo:
-          `${process.env.NEXT_PUBLIC_SITE_URL}/auth/confirm`,
+        emailRedirectTo: redirectUrl,
       },
     })
 
